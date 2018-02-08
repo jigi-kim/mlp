@@ -4,6 +4,14 @@ progress() {
     echo -e $(tput bold)$1$(tput sgr0)
 }
 
+expenv() {
+    if [ "$1" == "--append" ]; then
+        echo "export" $2"=\${"$2":+\${"$2"}:}"$3 >> ~/.bashrc
+    else
+        echo "export" $1"="$2 >> ~/.bashrc
+    fi
+}
+
 homedir=/home/ubuntu/
 
 # Initialization
@@ -30,6 +38,9 @@ sudo apt-get update
 sudo apt-get install -y --no-install-recommends cuda
 rm ${cuda_deb}*
 
+expenv --append "PATH" "/usr/local/cuda/bin"
+expenv --append "LD_LIBRARY_PATH" "/usr/local/cuda/lib64"
+
 nvidia-smi
 
 
@@ -42,11 +53,9 @@ sudo apt-get update
 sudo apt-get install -y --no-install-recommends golang-1.9-go
 
 mkdir ~/.go
-echo "export PATH=\$PATH:/usr/lib/go-1.9/bin" >> ~/.bashrc
-echo "export GOPATH=\$HOME/.go" >> ~/.bashrc
 
-export PATH=$PATH:/usr/lib/go-1.9/bin
-export GOPATH=$HOME/.go
+expenv --append "PATH" "/usr/lib/go-1.9/bin"
+expenv "GOPATH" "\$HOME/.go"
 
 go version
 
@@ -69,6 +78,10 @@ sudo apt-get update
 sudo apt-get install -y --no-install-recommends docker-ce
 sudo usermod -aG docker $USER
 
+expenv "DOCKER_API_VERSION" "1.35"
+
+export DOCKER_API_VERSION=1.35
+
 sudo docker version
 
 
@@ -84,9 +97,8 @@ sudo pkill -SIGHUP dockerd
 
 
 # Setup
-#
-echo ""
-progress "Setup learner environment in ${homedir}"
+# : Set learning environment on the instance
+progress "\nSetup environment in ${homedir}"
 
 progress " - make directories"
 
@@ -104,7 +116,4 @@ cd ./dockerfile
 sudo ./build tensorflow
 sudo docker images
 
-echo ""
-progress "#########################################"
-progress "# REBOOT THIS INSTANCE TO FINISH SETUP. #"
-progress "#########################################"
+progress "\nReboot this instance to finish setup."

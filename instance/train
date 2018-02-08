@@ -4,4 +4,4 @@ cd $(dirname "$0")
 rm -rf ../out/*
 rm -rf ../tbl/*
 
-{ time python main.py &> ../out/log } 2> ../out/time
+{ time python -u main.py &> ../out/log ; } 2> ../out/time

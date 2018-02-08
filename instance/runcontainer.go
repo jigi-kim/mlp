@@ -16,6 +16,11 @@ type dockerConfig struct {
 }
 
 func runContainer(name string, cfg *dockerConfig) {
+    containerLogOptions := types.ContainerLogsOptions {
+        ShowStdout: true,
+        ShowStderr: true,
+    }
+
     ctx := context.Background()
 
     cli, err := client.NewEnvClient()
@@ -42,7 +47,7 @@ func runContainer(name string, cfg *dockerConfig) {
     case <-statusCh:
     }
 
-    out, err := cli.ContainerLogs(ctx, resp.ID, types.ContainerLogsOptions{ShowStdout: true})
+    out, err := cli.ContainerLogs(ctx, resp.ID, containerLogOptions)
     if err != nil {
         panic(err)
     }
@@ -50,7 +55,7 @@ func runContainer(name string, cfg *dockerConfig) {
     io.Copy(os.Stdout, out)
 }
 
-func runLearner(name string, lib string, dat string) {
+func runTrainer(name string, lib string, dat string) {
     workDir := "/home/ubuntu/"
 
     containerConfig := container.Config {
@@ -62,6 +67,7 @@ func runLearner(name string, lib string, dat string) {
         Binds: []string {
             workDir + "out/" + ":/home/ubuntu/out",
             workDir + "src/" + ":/home/ubuntu/src",
+            workDir + "tbl/" + ":/home/ubuntu/tbl",
             workDir + "dat/" + dat + ":/home/ubuntu/dat",
         },
         Privileged: false,
@@ -85,5 +91,5 @@ func main() {
     lib := os.Args[1]
     dat := os.Args[2]
 
-    runLearner("learner", lib, dat)
+    runTrainer("trainer", lib, dat)
 }
