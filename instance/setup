@@ -92,6 +92,12 @@ progress " - make directories"
 
 mkdir ${homedir}/src ${homedir}/dat ${homedir}/out ${homedir}/tbl
 
+progress " - build docker images"
+
+cd ./dockerfile
+sudo ./build tensorflow
+sudo docker images
+
 echo ""
 progress "#########################################"
 progress "# REBOOT THIS INSTANCE TO FINISH SETUP. #"
