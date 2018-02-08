@@ -92,6 +92,12 @@ progress " - make directories"
 
 mkdir ${homedir}/src ${homedir}/dat ${homedir}/out ${homedir}/tbl
 
+progress " - copy resources"
+
+go get github.com/docker/docker/client
+go build -o ${homedir}/runcontainer runcontainer.go
+cp train save_model.py ${homedir}/src/
+
 progress " - build docker images"
 
 cd ./dockerfile
