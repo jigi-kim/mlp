@@ -12,7 +12,10 @@ expenv() {
     fi
 }
 
+# Change this value to customize the home directory of the platform
 homedir=/home/ubuntu/
+
+expenv "MLP_HOME" $homedir
 
 # Initialization
 # : Move directory to 'learner' and get some primary resources.
@@ -80,8 +83,6 @@ sudo usermod -aG docker $USER
 
 expenv "DOCKER_API_VERSION" "1.35"
 
-export DOCKER_API_VERSION=1.35
-
 sudo docker version
 
 
@@ -98,11 +99,13 @@ sudo pkill -SIGHUP dockerd
 
 # Setup
 # : Set learning environment on the instance
-progress "\nSetup environment in ${homedir}"
+source ~/.bashrc
 
+progress "\nSetup environment in ${homedir}"
 progress " - make directories"
 
-mkdir ${homedir}/src ${homedir}/dat ${homedir}/out ${homedir}/tbl
+mkdir ${homedir}/dat ${homedir}/out ${homedir}/src
+mkdir ${homedir}/out/models ${homedir}/out/tblog
 
 progress " - copy resources"
 

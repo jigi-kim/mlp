@@ -56,7 +56,7 @@ func runContainer(name string, cfg *dockerConfig) {
 }
 
 func runTrainer(name string, lib string, dat string) {
-    workDir := "/home/ubuntu/"
+    homeDir := os.Getenv("MLP_HOME")
 
     containerConfig := container.Config {
         Image: lib,
@@ -65,10 +65,9 @@ func runTrainer(name string, lib string, dat string) {
 
     hostConfig := container.HostConfig {
         Binds: []string {
-            workDir + "out/" + ":/home/ubuntu/out",
-            workDir + "src/" + ":/home/ubuntu/src",
-            workDir + "tbl/" + ":/home/ubuntu/tbl",
-            workDir + "dat/" + dat + ":/home/ubuntu/dat",
+            homeDir + "dat/" + dat + ":/home/ubuntu/dat",
+            homeDir + "out/" + ":/home/ubuntu/out",
+            homeDir + "src/" + ":/home/ubuntu/src",
         },
         Privileged: false,
         Runtime: "nvidia",
