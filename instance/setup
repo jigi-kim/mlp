@@ -111,7 +111,7 @@ progress " - copy resources"
 
 go get github.com/docker/docker/client
 go build -o ${homedir}/runcontainer runcontainer.go
-cp train save_model.py ${homedir}/src/
+cp save_model.py tester.py start ${homedir}/src/
 
 progress " - build docker images"
 
