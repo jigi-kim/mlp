@@ -11,8 +11,8 @@ import (
 )
 
 type dockerConfig struct {
-    Container *container.Config
-    Host *container.HostConfig
+    Container container.Config
+    Host container.HostConfig
 }
 
 func runContainer(name string, cfg *dockerConfig) {
@@ -28,7 +28,7 @@ func runContainer(name string, cfg *dockerConfig) {
         panic(err)
     }
 
-    resp, err := cli.ContainerCreate(ctx, cfg.Container, cfg.Host, nil, name)
+    resp, err := cli.ContainerCreate(ctx, &cfg.Container, &cfg.Host, nil, name)
     if err != nil {
         panic(err)
     }
@@ -55,40 +55,30 @@ func runContainer(name string, cfg *dockerConfig) {
     io.Copy(os.Stdout, out)
 }
 
-func runTrainer(name string, lib string, dat string) {
-    homeDir := os.Getenv("MLP_HOME")
-
-    containerConfig := container.Config {
-        Image: lib,
-        Cmd: []string {"/home/ubuntu/src/train"},
-    }
-
-    hostConfig := container.HostConfig {
-        Binds: []string {
-            homeDir + "dat/" + dat + ":/home/ubuntu/dat",
-            homeDir + "out/" + ":/home/ubuntu/out",
-            homeDir + "src/" + ":/home/ubuntu/src",
-        },
-        Privileged: false,
-        Runtime: "nvidia",
-    }
-
-    config := dockerConfig {
-        Container: &containerConfig,
-        Host: &hostConfig,
-    }
-
-    runContainer(name, &config)
-}
-
 func main() {
-    if len(os.Args) < 3 {
-        println("usage: run lib data")
+    if len(os.Args) != 4 || (os.Args[1] != "train" && os.Args[1] != "test") {
+        println("usage: runcontainer [train|test] lib data")
         return
     }
 
-    lib := os.Args[1]
-    dat := os.Args[2]
+    act, lib, dat := os.Args[1], os.Args[2], os.Args[3]
+    homeDir := os.Getenv("MLP_HOME")
 
-    runTrainer("trainer", lib, dat)
+    config := dockerConfig {
+        Container: container.Config {
+            Image: lib,
+            Cmd: []string {"/home/ubuntu/src/start", act},
+        },
+        Host: container.HostConfig {
+            Binds: []string {
+                homeDir + "dat/" + dat + ":/home/ubuntu/dat",
+                homeDir + "out/" + ":/home/ubuntu/out",
+                homeDir + "src/" + ":/home/ubuntu/src",
+            },
+            Privileged: false,
+            Runtime: "nvidia",
+        },
+    }
+
+    runContainer(act, &config)
 }

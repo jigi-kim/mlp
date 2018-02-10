@@ -1,0 +1,22 @@
+#!/bin/bash
+
+show_help() {
+    echo "usage: start [train|test]"
+    exit
+}
+
+if [ $# -ne 1 ]; then
+    show_help
+fi
+
+if [ "$1" == "train" ]; then
+    src=main.py
+elif [ "$1" == "test" ]; then
+    src=tester.py
+else
+    show_help
+fi
+
+cd $(dirname "$0")
+
+{ time python -u $src &> ../out/log ; } 2> ../out/time

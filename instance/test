@@ -1,5 +1,0 @@
-#!/bin/bash
-
-cd $(dirname "$0")
-
-{ time python -u tester.py &> ../out/log ; } 2> ../out/time
