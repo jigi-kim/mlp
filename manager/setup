@@ -1,0 +1,64 @@
+#!/bin/bash
+
+progress() {
+    echo -e $(tput bold)$1$(tput sgr0)
+}
+
+expenv() {
+    if [ "$1" == "--append" ]; then
+        echo "export" $2"=\${"$2":+\${"$2"}:}"$3 >> ~/.bashrc
+    else
+        echo "export" $1"="$2 >> ~/.bashrc
+    fi
+
+    source ~/.bashrc
+}
+
+# Change this value to customize the home directory of the platform
+homedir=/home/ubuntu/
+
+expenv "MLP_HOME" $homedir
+
+# Initialization
+# : Move directory to 'learner' and get some primary resources.
+progress "Move working directory to $(dirname "$0")"
+cd $(dirname "$0")
+
+sudo apt-get update
+sudo apt-get install -y --no-install-recommends linux-headers-$(uname -r)
+sudo apt-get install -y --no-install-recommends gcc
+
+
+# Install AWS CLI
+# Reference: https://aws.amazon.com/ko/cli/
+progress "Install AWS CLI"
+
+sudo apt-get install -y --no-install-recommends python3-pip
+sudo pip3 install --upgrade pip
+sudo pip3 install awscli
+
+aws --version
+
+
+# Install Golang 1.9
+# Reference: https://github.com/golang/go/wiki/Ubuntu
+progress "Install Golang 1.9"
+
+sudo add-apt-repository -y ppa:gophers/archive
+sudo apt-get update
+sudo apt-get install -y --no-install-recommends golang-1.9-go
+
+mkdir ~/.go
+
+expenv --append "PATH" "/usr/lib/go-1.9/bin"
+expenv "GOPATH" "\$HOME/.go"
+
+go version
+
+
+# Setup
+# : Set learning environment on the instance
+# progress "\nSetup environment in ${homedir}"
+# TODO: Write setup script
+
+progress "\nReboot this instance to finish setup."

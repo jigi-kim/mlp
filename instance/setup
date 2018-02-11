@@ -10,6 +10,8 @@ expenv() {
     else
         echo "export" $1"="$2 >> ~/.bashrc
     fi
+
+    source ~/.bashrc
 }
 
 # Change this value to customize the home directory of the platform
@@ -99,8 +101,6 @@ sudo pkill -SIGHUP dockerd
 
 # Setup
 # : Set learning environment on the instance
-source ~/.bashrc
-
 progress "\nSetup environment in ${homedir}"
 progress " - make directories"
 
