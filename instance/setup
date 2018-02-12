@@ -62,7 +62,7 @@ mkdir ~/.go
 expenv --append "PATH" "/usr/lib/go-1.9/bin"
 expenv "GOPATH" "\$HOME/.go"
 
-go version
+/usr/lib/go-1.9/bin/go version
 
 
 # Install Docker
