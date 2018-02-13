@@ -61,6 +61,7 @@ expenv --append "PATH" "/usr/lib/go-1.9/bin"
 expenv "GOPATH" "\$HOME/.go"
 
 export PATH=${PATH:+${PATH}:}/usr/lib/go-1.9/bin
+export GOPATH=$HOME/.go
 
 go version
 
