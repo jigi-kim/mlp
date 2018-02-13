@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# Same environment variables as those in '~/.bashrc' of instance
+# TODO: Make this duplicated behavior (if possible)
+export MLP_HOME=/home/ubuntu/
+export PATH=${PATH:+${PATH}:}/usr/local/cuda/bin
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH:+${LD_LIBRARY_PATH}:}/usr/local/cuda/lib64
+export PATH=${PATH:+${PATH}:}/usr/lib/go-1.9/bin
+export GOPATH=$HOME/.go
+export DOCKER_API_VERSION=1.35
+
+manager_addr=YOUR_MANAGER_PUBLIC_IP_ADDR
+
+set -x
+exec > >(tee ${MLP_HOME}/user-data.log|logger -t user-data ) 2>&1
+
+wget -O ${MLP_HOME}/src/main.py ${manager_addr}:8080/getfile/main.py
+${MLP_HOME}/runcontainer token_mod token_lib token_dat
