@@ -3,6 +3,7 @@ package main
 import (
     "context"
     "io"
+    "log"
     "os"
 
     "github.com/docker/docker/api/types"
@@ -25,31 +26,31 @@ func runContainer(name string, cfg *dockerConfig) {
 
     cli, err := client.NewEnvClient()
     if err != nil {
-        panic(err)
+        log.Fatal(err)
     }
 
     resp, err := cli.ContainerCreate(ctx, &cfg.Container, &cfg.Host, nil, name)
     if err != nil {
-        panic(err)
+        log.Fatal(err)
     }
 
     err = cli.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{})
     if err != nil {
-        panic(err)
+        log.Fatal(err)
     }
 
     statusCh, errCh := cli.ContainerWait(ctx, resp.ID, container.WaitConditionNotRunning)
     select {
     case err := <-errCh:
         if err != nil {
-            panic(err)
+            log.Fatal(err)
         }
     case <-statusCh:
     }
 
     out, err := cli.ContainerLogs(ctx, resp.ID, containerLogOptions)
     if err != nil {
-        panic(err)
+        log.Fatal(err)
     }
 
     io.Copy(os.Stdout, out)

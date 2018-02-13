@@ -28,7 +28,7 @@ func waitForInstance(client *ec2.EC2, instanceId string) float64 {
     })
 
     if err != nil {
-        log.Fatal(err)
+        log.Print(err)
     }
 
     started := time.Now()
@@ -58,7 +58,7 @@ func runInstance(userdata string) string {
     })
 
     if err != nil {
-        log.Fatal(err)
+        log.Print(err)
     }
 
     instanceId := aws.StringValue(res.Instances[0].InstanceId)
@@ -72,7 +72,7 @@ func runInstance(userdata string) string {
     })
 
     if err != nil {
-        log.Fatal(err)
+        log.Print(err)
     }
 
     return aws.StringValue(des.Reservations[0].Instances[0].PublicIpAddress)
@@ -86,7 +86,7 @@ func composeUserdata(path, mod, lib, dat string) string {
 
     scr, err := ioutil.ReadFile(path + "autorun_template")
     if err != nil {
-        log.Fatal(err)
+        log.Print(err)
     }
 
     scr = bytes.Replace(scr, []byte("token_mod"), []byte(mod), -1)
@@ -109,20 +109,20 @@ func main() {
         case "GET":
             tem, err := template.ParseFiles(mainPage)
             if err != nil {
-                log.Fatal(err)
+                log.Print(err)
             }
 
             tem.Execute(w, nil)
         case "POST":
             src, _, err := r.FormFile("sourcecode")
             if err != nil {
-                log.Fatal(err)
+                log.Print(err)
             }
             defer src.Close()
 
             dst, err := os.Create(homepath + "dat/main.py")
             if err != nil {
-                log.Fatal(err)
+                log.Print(err)
             }
             defer dst.Close()
 
