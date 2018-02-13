@@ -10,8 +10,6 @@ expenv() {
     else
         echo "export" $1"="$2 >> ~/.bashrc
     fi
-
-    source ~/.bashrc
 }
 
 # Change this value to customize the home directory of the platform
@@ -53,7 +51,9 @@ mkdir ~/.go
 expenv --append "PATH" "/usr/lib/go-1.9/bin"
 expenv "GOPATH" "\$HOME/.go"
 
-/usr/lib/go-1.9/bin/go version
+export PATH=${PATH:+${PATH}:}/usr/lib/go-1.9/bin
+
+go version
 
 
 # Setup
