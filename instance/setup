@@ -17,6 +17,8 @@ homedir=/home/ubuntu/
 
 expenv "MLP_HOME" $homedir
 
+set -e
+
 # Initialization
 # : Move directory to 'learner' and get some primary resources.
 progress "Move working directory to $(dirname "$0")"
