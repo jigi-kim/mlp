@@ -69,6 +69,6 @@ progress " - copy resources"
 go get github.com/gorilla/mux
 go get github.com/aws/aws-sdk-go
 go build -o ${homedir}/manage manage.go
-cp autorun_template ${homedir}/script/autorun_template
+cp userdata_template ${homedir}/script/userdata_template
 
 progress "\nReboot this instance to finish setup."

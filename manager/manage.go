@@ -84,7 +84,7 @@ func composeUserdata(path, mod, lib, dat string) string {
         os.Exit(1)
     }
 
-    scr, err := ioutil.ReadFile(path + "autorun_template")
+    scr, err := ioutil.ReadFile(path + "userdata_template")
     if err != nil {
         log.Print(err)
     }
