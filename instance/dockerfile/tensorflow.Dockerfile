@@ -9,7 +9,10 @@ RUN useradd -m -s /bin/bash -N -u 1000 ubuntu
 USER ubuntu
 
 # Set work directory
-RUN mkdir -p /home/ubuntu/out /home/ubuntu/src/ /home/ubuntu/dat
+RUN mkdir -p /home/ubuntu/src \
+             /home/ubuntu/dataset \
+             /home/ubuntu/models \
+             /home/ubuntu/out
 WORKDIR /home/ubuntu
 
 # Set default command as bash

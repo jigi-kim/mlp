@@ -1,7 +1,7 @@
 #!/bin/bash
 
 progress() {
-    echo -e $(tput bold)$1$(tput sgr0)
+    echo -e "$(tput bold)\n$1$(tput sgr0)"
 }
 
 expenv() {
@@ -12,25 +12,29 @@ expenv() {
     fi
 }
 
-# Change this value to customize the home directory of the platform
-homedir=/home/ubuntu/
 
-expenv "MLP_HOME" $homedir
-
+cd $(dirname "$0")
 set -e
 
-# Initialization
-# : Move directory to 'learner' and get some primary resources.
-progress "Move working directory to $(dirname "$0")"
-cd $(dirname "$0")
+homedir=/home/ubuntu/
+expenv "MLP_HOME" $homedir
+
+
+# Install prerequisites
+progress "Install Prerequisites"
 
 sudo apt-get update
 sudo apt-get install -y --no-install-recommends linux-headers-$(uname -r)
 sudo apt-get install -y --no-install-recommends gcc
 
 
-# Install CUDA 9.1
-# Reference: https://developer.nvidia.com/cuda-downloads
+# Install NFS Client (https://docs.aws.amazon.com/efs/latest/ug)
+progress "Install NFS Client"
+
+sudo apt-get -y --no-install-recommends install nfs-common
+
+
+# Install CUDA 9.1 (https://developer.nvidia.com/cuda-downloads)
 progress "Install CUDA 9.1"
 
 cuda_repo=http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1604/x86_64
@@ -49,8 +53,7 @@ expenv --append "LD_LIBRARY_PATH" "/usr/local/cuda/lib64"
 nvidia-smi
 
 
-# Install Golang 1.9
-# Reference: https://github.com/golang/go/wiki/Ubuntu
+# Install Golang 1.9 (https://github.com/golang/go/wiki/Ubuntu)
 progress "Install Golang 1.9"
 
 sudo add-apt-repository -y ppa:gophers/archive
@@ -68,8 +71,7 @@ export GOPATH=$HOME/.go
 go version
 
 
-# Install Docker
-# Reference: https://docs.docker.com/install/linux/docker-ce/ubuntu/
+# Install Docker (https://docs.docker.com/install/linux/docker-ce/ubuntu)
 progress "Install Docker CE"
 
 sudo apt-get install -y --no-install-recommends \
@@ -91,8 +93,7 @@ expenv "DOCKER_API_VERSION" "1.35"
 sudo docker version
 
 
-# Install NVIDIA-Docker 2.0
-# Reference: https://github.com/nvidia/nvidia-docker/wiki/Installation-(version-2.0)
+# Install NVIDIA-Docker 2.0 (https://github.com/nvidia/nvidia-docker/wiki)
 progress "Install NVIDIA Docker 2.0"
 
 curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add -
@@ -103,23 +104,16 @@ sudo pkill -SIGHUP dockerd
 
 
 # Setup
-# : Set learning environment on the instance
-progress "\nSetup environment in ${homedir}"
-progress " - make directories"
+progress "Setup environment in ${homedir}"
 
-mkdir ${homedir}/dat ${homedir}/out ${homedir}/src
-mkdir ${homedir}/out/models ${homedir}/out/tblog
-
-progress " - copy resources"
+mkdir ${homedir}/efs ${homedir}/src
 
 go get github.com/docker/docker/client
 go build -o ${homedir}/runcontainer runcontainer.go
 cp save_model.py tester.py start ${homedir}/src/
 
-progress " - build docker images"
-
 cd ./dockerfile
 sudo ./build tensorflow
 sudo docker images
 
-progress "\nReboot this instance to finish setup."
+progress "Reboot this instance to finish setup."

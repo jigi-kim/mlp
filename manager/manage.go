@@ -78,7 +78,7 @@ func runInstance(userdata string) string {
     return aws.StringValue(des.Reservations[0].Instances[0].PublicIpAddress)
 }
 
-func composeUserdata(path, mod, lib, dat string) string {
+func composeUserdata(path, mod, lib, chl string) string {
     if !(mod == "train") {
         println("unknown mode for instance:" + mod)
         os.Exit(1)
@@ -91,7 +91,7 @@ func composeUserdata(path, mod, lib, dat string) string {
 
     scr = bytes.Replace(scr, []byte("token_mod"), []byte(mod), -1)
     scr = bytes.Replace(scr, []byte("token_lib"), []byte(lib), -1)
-    scr = bytes.Replace(scr, []byte("token_dat"), []byte(dat), -1)
+    scr = bytes.Replace(scr, []byte("token_chl"), []byte(chl), -1)
 
     userdata := base64.StdEncoding.EncodeToString(scr)
 
@@ -120,7 +120,7 @@ func main() {
             }
             defer src.Close()
 
-            dst, err := os.Create(homepath + "dat/main.py")
+            dst, err := os.Create(homepath + "src/main.py")
             if err != nil {
                 log.Print(err)
             }
@@ -132,7 +132,7 @@ func main() {
                 homepath + "script/",
                 r.FormValue("mode"),
                 r.FormValue("library"),
-                r.FormValue("dataset"),
+                r.FormValue("challenge"),
             )
 
             publicIpAddress := runInstance(userdata)
@@ -144,7 +144,7 @@ func main() {
 
     router.HandleFunc("/getfile/{file}", func(w http.ResponseWriter, r *http.Request) {
         vars := mux.Vars(r)
-        src, err := os.Open(homepath + "dat/" + vars["file"])
+        src, err := os.Open(homepath + "src/" + vars["file"])
         if err != nil {
             http.Error(w, "File not found", 404)
             return

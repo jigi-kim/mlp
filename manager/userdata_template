@@ -15,4 +15,4 @@ set -x
 exec > >(tee ${MLP_HOME}/user-data.log|logger -t user-data ) 2>&1
 
 wget -O ${MLP_HOME}/src/main.py ${manager_addr}:8080/getfile/main.py
-${MLP_HOME}/runcontainer token_mod token_lib token_dat
+${MLP_HOME}/runcontainer token_mod token_lib token_chl

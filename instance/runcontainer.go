@@ -39,13 +39,13 @@ func runContainer(name string, cfg *dockerConfig) {
         log.Fatal(err)
     }
 
-    statusCh, errCh := cli.ContainerWait(ctx, resp.ID, container.WaitConditionNotRunning)
+    cStat, cErr := cli.ContainerWait(ctx, resp.ID, container.WaitConditionNotRunning)
     select {
-    case err := <-errCh:
+    case err := <-cErr:
         if err != nil {
             log.Fatal(err)
         }
-    case <-statusCh:
+    case <-cStat:
     }
 
     out, err := cli.ContainerLogs(ctx, resp.ID, containerLogOptions)
@@ -58,28 +58,30 @@ func runContainer(name string, cfg *dockerConfig) {
 
 func main() {
     if len(os.Args) != 4 || (os.Args[1] != "train" && os.Args[1] != "test") {
-        println("usage: runcontainer [train|test] lib data")
+        println("usage: runcontainer [train|test] library challenge")
         return
     }
 
-    act, lib, dat := os.Args[1], os.Args[2], os.Args[3]
-    homeDir := os.Getenv("MLP_HOME")
+    mod, lib, chl := os.Args[1], os.Args[2], os.Args[3]
+    homeDir := os.Getenv("MLP_HOME") + "/"
 
     config := dockerConfig {
         Container: container.Config {
             Image: lib,
-            Cmd: []string {"/home/ubuntu/src/start", act},
+            Cmd: []string {"/home/ubuntu/src/start", mod},
         },
         Host: container.HostConfig {
             Binds: []string {
-                homeDir + "dat/" + dat + ":/home/ubuntu/dat",
-                homeDir + "out/" + ":/home/ubuntu/out",
                 homeDir + "src/" + ":/home/ubuntu/src",
+
+                homeDir + "efs/challenges/" + chl + "/" + mod + ":/home/ubuntu/dataset",
+                homeDir + "efs/" + chl + "/models" + ":/home/ubuntu/models",
+                homeDir + "efs/" + chl + "/output" + ":/home/ubuntu/out",
             },
             Privileged: false,
             Runtime: "nvidia",
         },
     }
 
-    runContainer(act, &config)
+    runContainer(mod, &config)
 }

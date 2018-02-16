@@ -1,7 +1,7 @@
 #!/bin/bash
 
 progress() {
-    echo -e $(tput bold)$1$(tput sgr0)
+    echo -e "$(tput bold)\n$1$(tput sgr0)"
 }
 
 expenv() {
@@ -12,36 +12,35 @@ expenv() {
     fi
 }
 
-# Change this value to customize the home directory of the platform
-homedir=/home/ubuntu/
 
-expenv "MLP_HOME" $homedir
-
+cd $(dirname "$0")
 set -e
 
-# Initialization
-# : Move directory to 'learner' and get some primary resources.
-progress "Move working directory to $(dirname "$0")"
-cd $(dirname "$0")
+if [ "$(grep -Irn "YOUR" --exclude=setup)" != "" ]; then
+    progress "Please fill up belows before running this script"
+    grep -Irn "YOUR" --exclude=setup
+    exit
+fi
+
+homedir=/home/ubuntu/
+expenv "MLP_HOME" $homedir
+
+
+# Install prerequisites
+progress "Install Prerequisites"
 
 sudo apt-get update
 sudo apt-get install -y --no-install-recommends linux-headers-$(uname -r)
 sudo apt-get install -y --no-install-recommends gcc
 
 
-# Install AWS CLI
-# Reference: https://aws.amazon.com/ko/cli/
-progress "Install AWS CLI"
+# Install NFS Client (https://docs.aws.amazon.com/efs/latest/ug)
+progress "Install NFS Client"
 
-sudo apt-get install -y --no-install-recommends python3-pip
-sudo pip3 install --upgrade pip
-sudo pip3 install awscli
-
-aws --version
+sudo apt-get -y --no-install-recommends install nfs-common
 
 
-# Install Golang 1.9
-# Reference: https://github.com/golang/go/wiki/Ubuntu
+# Install Golang 1.9 (https://github.com/golang/go/wiki/Ubuntu)
 progress "Install Golang 1.9"
 
 sudo add-apt-repository -y ppa:gophers/archive
@@ -61,16 +60,13 @@ go version
 
 # Setup
 # : Set learning environment on the instance
-progress "\nSetup environment in ${homedir}"
-progress " - make directories"
+progress "Setup environment in ${homedir}"
 
-mkdir ${homedir}/dat ${homedir}/script
-
-progress " - copy resources"
+mkdir ${homedir}/efs ${homedir}/src ${homedir}/script
 
 go get github.com/gorilla/mux
 go get github.com/aws/aws-sdk-go
 go build -o ${homedir}/manage manage.go
 cp userdata_template ${homedir}/script/userdata_template
 
-progress "\nReboot this instance to finish setup."
+progress "Reboot this instance to finish setup."
