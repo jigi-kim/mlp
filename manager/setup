@@ -16,14 +16,17 @@ expenv() {
 cd $(dirname "$0")
 set -e
 
-if [ "$(grep -Irn "YOUR" --exclude=setup)" != "" ]; then
+if [ "$(grep -IGnr "YOUR[_A-Z]\+")" != "" ]; then
     progress "Please fill up belows before running this script"
-    grep -Irn "YOUR" --exclude=setup
+    grep -IGnr "YOUR[_A-Z]\+"
     exit
 fi
 
-homedir=/home/ubuntu/
-expenv "MLP_HOME" $homedir
+homedir=/home/ubuntu
+expenv "MLP_HOME" "${homedir}/"
+
+efs_mount_point=${homedir}/efs
+efs_dns_name="YOUR_EFS_DNS_NAME"
 
 
 # Install prerequisites
@@ -68,5 +71,10 @@ go get github.com/gorilla/mux
 go get github.com/aws/aws-sdk-go
 go build -o ${homedir}/manage manage.go
 cp userdata_template ${homedir}/script/userdata_template
+
+mnt_o="nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,_netdev"
+
+echo "${efs_dns_name}:/	${efs_mount_point}	nfs4	${mnt_o}	0 0" |\
+    sudo tee -a /etc/fstab
 
 progress "Reboot this instance to finish setup."

@@ -103,7 +103,7 @@ func main() {
     router := mux.NewRouter()
 
     router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-        mainPage := "upload.html"
+        mainPage := "script/upload.html"
 
         switch r.Method {
         case "GET":
