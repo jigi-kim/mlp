@@ -32,7 +32,7 @@ func saveSourceCode(src io.Reader, dat string) {
 }
 
 func composeUserdata(mod, lib, dat string) string {
-    if !(mod == "train") {
+    if !(mod == "train" || mod == "test") {
         println("unknown mode for instance:" + mod)
         os.Exit(1)
     }
