@@ -12,13 +12,45 @@ import (
     "os"
     "time"
 
-	"github.com/gorilla/mux"
-
     "github.com/aws/aws-sdk-go/aws"
     "github.com/aws/aws-sdk-go/aws/credentials"
     "github.com/aws/aws-sdk-go/aws/session"
     "github.com/aws/aws-sdk-go/service/ec2"
 )
+
+var homepath = ""
+
+func saveSourceCode(src io.Reader, dat string) {
+    path := homepath + "efs/user/" + dat + "/src/"
+    saveAs, err := os.Create(path + "main.py")
+    if err != nil {
+        log.Print(err)
+    }
+    defer saveAs.Close()
+
+    io.Copy(saveAs, src)
+}
+
+func composeUserdata(mod, lib, dat string) string {
+    if !(mod == "train") {
+        println("unknown mode for instance:" + mod)
+        os.Exit(1)
+    }
+
+    path := homepath + "script/"
+    scr, err := ioutil.ReadFile(path + "userdata_template")
+    if err != nil {
+        log.Print(err)
+    }
+
+    scr = bytes.Replace(scr, []byte("token_mod"), []byte(mod), -1)
+    scr = bytes.Replace(scr, []byte("token_lib"), []byte(lib), -1)
+    scr = bytes.Replace(scr, []byte("token_dat"), []byte(dat), -1)
+
+    userdata := base64.StdEncoding.EncodeToString(scr)
+
+    return userdata
+}
 
 func waitForInstance(client *ec2.EC2, instanceId string) float64 {
     requested := time.Now()
@@ -36,7 +68,7 @@ func waitForInstance(client *ec2.EC2, instanceId string) float64 {
     return started.Sub(requested).Seconds()
 }
 
-func runInstance(userdata string) string {
+func runInstance(userdata string) {
     client := ec2.New(session.New(&aws.Config {
         Region: aws.String("YOUR_AWS_REGION"),
         Credentials: credentials.NewStaticCredentials(
@@ -75,39 +107,21 @@ func runInstance(userdata string) string {
         log.Print(err)
     }
 
-    return aws.StringValue(des.Reservations[0].Instances[0].PublicIpAddress)
-}
-
-func composeUserdata(path, mod, lib, dat string) string {
-    if !(mod == "train") {
-        println("unknown mode for instance:" + mod)
-        os.Exit(1)
-    }
-
-    scr, err := ioutil.ReadFile(path + "userdata_template")
-    if err != nil {
-        log.Print(err)
-    }
-
-    scr = bytes.Replace(scr, []byte("token_mod"), []byte(mod), -1)
-    scr = bytes.Replace(scr, []byte("token_lib"), []byte(lib), -1)
-    scr = bytes.Replace(scr, []byte("token_dat"), []byte(dat), -1)
-
-    userdata := base64.StdEncoding.EncodeToString(scr)
-
-    return userdata
+    ipAddr := aws.StringValue(des.Reservations[0].Instances[0].PublicIpAddress)
+    println("instance ip:", ipAddr)
 }
 
 func main() {
-    homepath := os.Getenv("MLP_HOME")
-    router := mux.NewRouter()
+    homepath = os.Getenv("MLP_HOME")
 
-    router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-        mainPage := "script/upload.html"
+    if homepath == "" {
+        log.Fatal("error: homepath is not set")
+    }
 
+    http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
         switch r.Method {
         case "GET":
-            tem, err := template.ParseFiles(mainPage)
+            tem, err := template.ParseFiles("script/upload.html")
             if err != nil {
                 log.Print(err)
             }
@@ -124,22 +138,26 @@ func main() {
             }
             defer src.Close()
 
-            dst, err := os.Create(homepath + "efs/user/" + dat + "/src/main.py")
-            if err != nil {
-                log.Print(err)
-            }
-            defer dst.Close()
+            saveSourceCode(src, dat)
+            userdata := composeUserdata(mod, lib, dat)
 
-            io.Copy(dst, src)
-
-            userdata := composeUserdata(homepath + "script/", mod, lib, dat)
-
-            publicIpAddress := runInstance(userdata)
-            println("instance ip:", publicIpAddress)
+            go runInstance(userdata)
         default:
-            println("unknow http method:" + r.Method)
+            println("unknown http method:" + r.Method)
         }
     })
 
-    http.ListenAndServe(":8080", router)
+    http.HandleFunc("/status", func(w http.ResponseWriter, r *http.Request) {
+        switch r.Method {
+        case "PUT":
+            println(r.RemoteAddr)
+            status := r.FormValue("status")
+            println("status:", status)
+        default:
+            println("unknown http method:" + r.Method)
+        }
+    })
+
+    println("manager is now running.")
+    http.ListenAndServe(":8080", nil)
 }

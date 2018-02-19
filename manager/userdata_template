@@ -6,18 +6,26 @@ export DOCKER_API_VERSION=1.35
 
 manager_addr=YOUR_MANAGER_PUBLIC_IP_ADDR
 
+send_status_to_manager() {
+    curl -X PUT -d status=$1 $manager_addr:8080/status
+}
+
 wrap_up() {
-    cp /var/log/syslog ${MLP_HOME}/efs/user/token_dat/output/syslog
-    chown ubuntu:ubuntu ${MLP_HOME}/efs/user/token_dat/output/syslog
+    if [ "$1" == "err" ]; then
+        send_status_to_manager "error"
+    fi
 
     sync
     halt
 }
 
-trap 'wrap_up' ERR
-exec 1> >(logger -t user-data) 2>&1
+trap 'wrap_up err' ERR
+
+send_status_to_manager "token_mod"
 
 cp ${MLP_HOME}/efs/user/token_dat/src/main.py ${MLP_HOME}/src/main.py
 ${MLP_HOME}/runcontainer token_mod token_lib token_dat
+
+send_status_to_manager "done"
 
 wrap_up
