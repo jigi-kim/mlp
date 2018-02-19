@@ -78,7 +78,7 @@ func runInstance(userdata string) string {
     return aws.StringValue(des.Reservations[0].Instances[0].PublicIpAddress)
 }
 
-func composeUserdata(path, mod, lib, chl string) string {
+func composeUserdata(path, mod, lib, dat string) string {
     if !(mod == "train") {
         println("unknown mode for instance:" + mod)
         os.Exit(1)
@@ -91,7 +91,7 @@ func composeUserdata(path, mod, lib, chl string) string {
 
     scr = bytes.Replace(scr, []byte("token_mod"), []byte(mod), -1)
     scr = bytes.Replace(scr, []byte("token_lib"), []byte(lib), -1)
-    scr = bytes.Replace(scr, []byte("token_chl"), []byte(chl), -1)
+    scr = bytes.Replace(scr, []byte("token_dat"), []byte(dat), -1)
 
     userdata := base64.StdEncoding.EncodeToString(scr)
 
@@ -114,13 +114,17 @@ func main() {
 
             tem.Execute(w, nil)
         case "POST":
+            mod := r.FormValue("mode")
+            lib := r.FormValue("library")
+            dat := r.FormValue("dataset")
+
             src, _, err := r.FormFile("sourcecode")
             if err != nil {
                 log.Print(err)
             }
             defer src.Close()
 
-            dst, err := os.Create(homepath + "src/main.py")
+            dst, err := os.Create(homepath + "efs/user/" + dat + "/src/main.py")
             if err != nil {
                 log.Print(err)
             }
@@ -128,34 +132,13 @@ func main() {
 
             io.Copy(dst, src)
 
-            userdata := composeUserdata(
-                homepath + "script/",
-                r.FormValue("mode"),
-                r.FormValue("library"),
-                r.FormValue("challenge"),
-            )
+            userdata := composeUserdata(homepath + "script/", mod, lib, dat)
 
             publicIpAddress := runInstance(userdata)
             println("instance ip:", publicIpAddress)
         default:
             println("unknow http method:" + r.Method)
         }
-    })
-
-    router.HandleFunc("/getfile/{file}", func(w http.ResponseWriter, r *http.Request) {
-        vars := mux.Vars(r)
-        src, err := os.Open(homepath + "src/" + vars["file"])
-        if err != nil {
-            http.Error(w, "File not found", 404)
-            return
-        }
-        defer src.Close()
-
-        w.Header().Set("Content-Disposition", "attachment; filename=a.txt")
-        w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
-        w.Header().Set("Content-Length", r.Header.Get("Content-Length"))
-
-        io.Copy(w, src)
     })
 
     http.ListenAndServe(":8080", router)

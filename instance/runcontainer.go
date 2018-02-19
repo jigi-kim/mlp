@@ -58,11 +58,11 @@ func runContainer(name string, cfg *dockerConfig) {
 
 func main() {
     if len(os.Args) != 4 || (os.Args[1] != "train" && os.Args[1] != "test") {
-        println("usage: runcontainer [train|test] library challenge")
+        println("usage: runcontainer [train|test] library dataset")
         return
     }
 
-    mod, lib, chl := os.Args[1], os.Args[2], os.Args[3]
+    mod, lib, dat := os.Args[1], os.Args[2], os.Args[3]
     homeDir := os.Getenv("MLP_HOME") + "/"
 
     config := dockerConfig {
@@ -74,9 +74,9 @@ func main() {
             Binds: []string {
                 homeDir + "src/" + ":/home/ubuntu/src",
 
-                homeDir + "efs/challenges/" + chl + "/" + mod + ":/home/ubuntu/dataset",
-                homeDir + "efs/" + chl + "/models" + ":/home/ubuntu/models",
-                homeDir + "efs/" + chl + "/output" + ":/home/ubuntu/out",
+                homeDir + "efs/datasets/" + dat + "/" + mod + ":/home/ubuntu/dataset",
+                homeDir + "efs/user/" + dat + "/models" + ":/home/ubuntu/models",
+                homeDir + "efs/user/" + dat + "/output" + ":/home/ubuntu/out",
             },
             Privileged: false,
             Runtime: "nvidia",

@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-DEFAULT_MODEL_PATH = "/home/ubuntu/out/"
+DEFAULT_MODEL_PATH = "/home/ubuntu/models/"
 DEFAULT_MODEL_NAME = "model"
 
 def save_model(session, x, y, model_name=DEFAULT_MODEL_NAME):

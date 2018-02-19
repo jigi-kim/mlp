@@ -6,14 +6,15 @@ from tensorflow.python.tools import saved_model_cli as sm
 
 from main import preprocess
 
-data_dir  = "/home/ubuntu/dat/"
-model_dir = "/home/ubuntu/src/model/"
+data_dir  = "/home/ubuntu/dataset/"
+model_dir = "/home/ubuntu/models/"
 out_dir   = "/home/ubuntu/out/"
 
 tag_set = "serve"
 signature_def = "default"
 
 try:
+    # TODO: Can we believe this 'input_label' from user-defined function?
     input_data, input_label = preprocess(data_dir + "test")
 except NameError: # Case when the user didn't implement 'preprocess()'
     print("error: user didn't implement the function 'preprocess()'.")

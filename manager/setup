@@ -65,7 +65,7 @@ go version
 # : Set learning environment on the instance
 progress "Setup environment in ${homedir}"
 
-mkdir ${homedir}/efs ${homedir}/src ${homedir}/script
+mkdir ${homedir}/efs ${homedir}/script
 
 go get github.com/gorilla/mux
 go get github.com/aws/aws-sdk-go
