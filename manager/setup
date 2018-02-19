@@ -33,14 +33,14 @@ efs_dns_name="YOUR_EFS_DNS_NAME"
 progress "Install Prerequisites"
 
 sudo apt-get update
-sudo apt-get install -y --no-install-recommends linux-headers-$(uname -r)
-sudo apt-get install -y --no-install-recommends gcc
+sudo apt-get install -y linux-headers-$(uname -r)
+sudo apt-get install -y gcc
 
 
 # Install NFS Client (https://docs.aws.amazon.com/efs/latest/ug)
 progress "Install NFS Client"
 
-sudo apt-get -y --no-install-recommends install nfs-common
+sudo apt-get -y install nfs-common
 
 
 # Install Golang 1.9 (https://github.com/golang/go/wiki/Ubuntu)
@@ -48,7 +48,7 @@ progress "Install Golang 1.9"
 
 sudo add-apt-repository -y ppa:gophers/archive
 sudo apt-get update
-sudo apt-get install -y --no-install-recommends golang-1.9-go
+sudo apt-get install -y golang-1.9-go
 
 mkdir ~/.go
 

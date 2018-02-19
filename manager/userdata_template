@@ -25,7 +25,7 @@ trap 'wrap_up err' ERR
 
 send_status_to_manager "tensorboard"
 
-tensorboard --logdir=${MLP_NOME}/efs/user/token_dat/tensorboard
+tensorboard --logdir=${MLP_NOME}/efs/user/token_dat/tensorboard &
 cp ${MLP_HOME}/efs/user/token_dat/src/main.py ${MLP_HOME}/src/main.py
 
 send_status_to_manager "runcontainer"

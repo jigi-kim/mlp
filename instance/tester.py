@@ -49,4 +49,4 @@ ans = [ a for a in input_label ]
 
 scr = [ 1 for e, a in zip(est, ans) if (e == a) ].count(1)
 
-print("correct: %d/%d (%3.1f%%)" % (scr, len(est), float(scr)/len(est)))
+print("correct: %d/%d (%3.1f%%)" % (scr, len(est), 100*float(scr)/len(est)))
