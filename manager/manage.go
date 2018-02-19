@@ -10,6 +10,7 @@ import (
     "log"
     "net/http"
     "os"
+    "strings"
     "time"
 
     "github.com/aws/aws-sdk-go/aws"
@@ -147,12 +148,24 @@ func main() {
         }
     })
 
+    targetAddr := ""
+    http.HandleFunc("/tb", func(w http.ResponseWriter, r *http.Request) {
+        if targetAddr != "" {
+            http.Redirect(w,r,"http://"+targetAddr+":6006", 301)
+        }
+    })
+
     http.HandleFunc("/status", func(w http.ResponseWriter, r *http.Request) {
         switch r.Method {
         case "PUT":
-            println(r.RemoteAddr)
+            instanceIp := strings.Split(r.RemoteAddr, ":")[0]
+
             status := r.FormValue("status")
-            println("status:", status)
+            println(instanceIp, "status:", status)
+
+            if status == "runcontainer" {
+                targetAddr = instanceIp
+            }
         default:
             println("unknown http method:" + r.Method)
         }

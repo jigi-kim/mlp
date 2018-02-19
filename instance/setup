@@ -112,6 +112,12 @@ sudo apt-get install -y --no-install-recommends nvidia-docker2
 sudo pkill -SIGHUP dockerd
 
 
+# Install Tensorflow (Only for Tensorboard) (https://www.tensorflow.org/install/install_linux)
+sudo apt-get install -y --no-install-recommends python3-pip python3-dev
+sudo pip3 install --upgrade pip
+sudo pip3 install tensorflow
+
+
 # Setup
 progress "Setup environment in ${homedir}"
 
