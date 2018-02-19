@@ -12,6 +12,7 @@ USER ubuntu
 RUN mkdir -p /home/ubuntu/src \
              /home/ubuntu/dataset \
              /home/ubuntu/models \
+             /home/ubuntu/tensorboard \
              /home/ubuntu/out
 WORKDIR /home/ubuntu
 

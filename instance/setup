@@ -22,8 +22,8 @@ if [ "$(grep -IGnr "YOUR[_A-Z]\+")" != "" ]; then
     exit
 fi
 
-homedir=/home/ubuntu/
-expenv "MLP_HOME" $homedir
+homedir=/home/ubuntu
+expenv "MLP_HOME" "${homedir}/"
 
 efs_mount_point=${homedir}/efs
 efs_dns_name="YOUR_EFS_DNS_NAME"

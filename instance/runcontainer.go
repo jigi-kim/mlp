@@ -76,6 +76,7 @@ func main() {
 
                 homeDir + "efs/datasets/" + dat + "/" + mod + ":/home/ubuntu/dataset",
                 homeDir + "efs/user/" + dat + "/models" + ":/home/ubuntu/models",
+                homeDir + "efs/user/" + dat + "/tensorboard" + ":/home/ubuntu/tensorboard",
                 homeDir + "efs/user/" + dat + "/output" + ":/home/ubuntu/out",
             },
             Privileged: false,
