@@ -9,7 +9,6 @@ import (
     "log"
     "net/http"
     "os"
-    "strconv"
     "strings"
 )
 
@@ -83,15 +82,13 @@ func main() {
             saveSourceCode(src, dat)
             userdata := composeUserdata(mod, lib, dat)
 
-            instanceId := monitor.RunInstance(
+            monitor.RunInstance(
                 "YOUR_MLP_INSTANCE_AMI_ID",
                 "YOUR_MLP_INSTANCE_TYPE",
                 "YOUR_MLP_INSTANCE_KEY_PAIR_NAME",
                 "YOUR_SECURITY_GROUP_ID",
                 userdata,
             )
-
-            println("requested new instance:", instanceId)
         default:
             println("unknown http method:" + r.Method)
         }
@@ -108,11 +105,7 @@ func main() {
         switch r.Method {
         case "PUT":
             instanceIp := strings.Split(r.RemoteAddr, ":")[0]
-            status, err := strconv.Atoi(r.FormValue("status"))
-
-            if err != nil {
-                log.Print(err)
-            }
+            status := r.FormValue("status")
 
             monitor.UpdateInstanceState(instanceIp, status)
         default:

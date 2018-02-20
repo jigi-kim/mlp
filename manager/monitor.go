@@ -11,35 +11,29 @@ import (
     "github.com/aws/aws-sdk-go/service/ec2"
 )
 
-const (
-    STATUS_REQUESTED int = iota
-    STATUS_INITIALIZED
-    STATUS_CONTAINER
-    STATUS_HALT
-    STATUS_ERROR
-)
-
-var statusName = [...]string {
-    "requested",    // status code: 0
-    "initialized",  // status code: 1
-    "container",    // status code: 2
-    "halt",         // status code: 3
-    "error",        // status code: 4
+var instanceStatus = [...]string {
+    "requested",
+    "running",
+    "initialized",
+    "runcontainer",
+    "halt",
+    "error",
 }
 
 type Instance struct {
     instanceId string
     publicIp string
 
-    status int
-    newStatus chan int
+    status string
+    newStatus chan string
 }
 
 func NewInstance(instanceId string) *Instance {
     self := new(Instance)
 
     self.instanceId = instanceId
-    self.status = STATUS_REQUESTED
+    self.status = instanceStatus[0]
+    self.newStatus = make(chan string)
 
     return self
 }
@@ -62,10 +56,12 @@ func NewMonitor(region, accessKey, secretKey string) *Monitor {
         ),
     }))
 
+    self.instances = map[string]*Instance {}
+
     return self
 }
 
-func (self *Monitor) RunInstance(ami, ins, key, sec, userdata string) string {
+func (self *Monitor) RunInstance(ami, ins, key, sec, userdata string) {
     res, err := self.client.RunInstances(&ec2.RunInstancesInput {
         ImageId: aws.String(ami),
         InstanceType: aws.String(ins),
@@ -84,10 +80,10 @@ func (self *Monitor) RunInstance(ami, ins, key, sec, userdata string) string {
     instanceId := aws.StringValue(res.Instances[0].InstanceId)
     instance := NewInstance(instanceId)
 
-    go self.registerInstance(instance)
-    go self.monitorInstance(instance)
+    println("requested new instance:", instanceId)
 
-    return instanceId
+    go self.monitorInstance(instance)
+    go self.registerInstance(instance)
 }
 
 func (self *Monitor) registerInstance(instance *Instance) {
@@ -105,14 +101,17 @@ func (self *Monitor) registerInstance(instance *Instance) {
         log.Print(err)
     }
 
-    ipAddr := aws.StringValue(des.Reservations[0].Instances[0].PublicIpAddress)
-    self.instances[ipAddr] = instance
+    instance.newStatus <- "running"
+
+    addr := aws.StringValue(des.Reservations[0].Instances[0].PublicIpAddress)
+    self.instances[addr] = instance
+    self.NrInstances++
 }
 
 func (self *Monitor) monitorInstance(instance *Instance) {
     prevTime := time.Now()
 
-    for instance.status != STATUS_HALT {
+    for instance.status != "halt" {
         previousStatus := instance.status
 
         instance.status = <-instance.newStatus
@@ -121,18 +120,19 @@ func (self *Monitor) monitorInstance(instance *Instance) {
         elapsed := currTime.Sub(prevTime).Seconds()
         prevTime = currTime
 
-        fmt.Printf("[%s] %s -> %s (%dsec)\n",
+        fmt.Printf("[%s] %s -> %s (%.2f sec)\n",
             instance.instanceId,
-            statusName[previousStatus],
-            statusName[instance.status],
+            previousStatus,
+            instance.status,
             elapsed,
         )
     }
 
     delete(self.instances, instance.publicIp)
+    self.NrInstances--
 }
 
-func (self *Monitor) UpdateInstanceState(publicIp string, status int) {
+func (self *Monitor) UpdateInstanceState(publicIp string, status string) {
     if _, exist := self.instances[publicIp]; exist {
         self.instances[publicIp].newStatus <- status
     }
