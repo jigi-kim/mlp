@@ -123,7 +123,7 @@ elif [ "$1" != "manager" ] && [ "$1" != "instance" ]; then
     print_usage
 elif [ "$(grep -IGnr "YOUR[_A-Z]\+" $1 setup)" != "" ]; then
     progress "Please fill up belows before running this script"
-    grep -IGnr "YOUR[_A-Z]\+"
+    grep -IGnr "YOUR[_A-Z]\+" $1 setup
     exit
 fi
 set -e
@@ -159,7 +159,7 @@ if [ "$setup_as" == "manager" ]; then
     export GOPATH=$HOME/.go
 
     go get github.com/aws/aws-sdk-go
-    go build -o ${homepath}/manage manage.go
+    go build -o ${homepath}/manager manager.go monitor.go
     cp userdata_template upload.html ${homepath}/script
 else
     install_tensorflow

@@ -11,6 +11,8 @@ import (
     "github.com/docker/docker/client"
 )
 
+var homepath string
+
 type dockerConfig struct {
     Container container.Config
     Host container.HostConfig
@@ -63,7 +65,12 @@ func main() {
     }
 
     mod, lib, dat := os.Args[1], os.Args[2], os.Args[3]
-    homeDir := os.Getenv("MLP_HOME") + "/"
+
+    homepath = os.Getenv("HOMEPATH")
+
+    if homepath == "" {
+        log.Fatal("error: homepath is not set")
+    }
 
     config := dockerConfig {
         Container: container.Config {
@@ -72,12 +79,12 @@ func main() {
         },
         Host: container.HostConfig {
             Binds: []string {
-                homeDir + "src/" + ":/home/ubuntu/src",
+                homepath + "src/" + ":/home/ubuntu/src",
 
-                homeDir + "efs/datasets/" + dat + "/" + mod + ":/home/ubuntu/dataset",
-                homeDir + "efs/user/" + dat + "/models" + ":/home/ubuntu/models",
-                homeDir + "efs/user/" + dat + "/tensorboard" + ":/home/ubuntu/tensorboard",
-                homeDir + "efs/user/" + dat + "/output" + ":/home/ubuntu/out",
+                homepath + "efs/datasets/" + dat + "/" + mod + ":/home/ubuntu/dataset",
+                homepath + "efs/user/" + dat + "/models" + ":/home/ubuntu/models",
+                homepath + "efs/user/" + dat + "/tensorboard" + ":/home/ubuntu/tensorboard",
+                homepath + "efs/user/" + dat + "/output" + ":/home/ubuntu/out",
             },
             Privileged: false,
             Runtime: "nvidia",

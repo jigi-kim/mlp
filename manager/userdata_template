@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Same environment variables as those in '~/.bashrc' of instance
-export MLP_HOME=/home/ubuntu
+export HOMEPATH=/home/ubuntu
 export DOCKER_API_VERSION=1.35
 
 manager_addr=YOUR_MANAGER_PUBLIC_IP_ADDR
@@ -24,11 +24,11 @@ trap 'wrap_up err' ERR
 
 send_status_to_manager "initialized"
 
-tensorboard --logdir=${MLP_NOME}/efs/user/token_dat/tensorboard &
-cp ${MLP_HOME}/efs/user/token_dat/src/main.py ${MLP_HOME}/src/main.py
+tensorboard --logdir=${HOMEPATH}/efs/user/token_dat/tensorboard &
+cp ${HOMEPATH}/efs/user/token_dat/src/main.py ${HOMEPATH}/src/main.py
 
 send_status_to_manager "container"
 
-${MLP_HOME}/runcontainer token_mod token_lib token_dat
+${HOMEPATH}/runcontainer token_mod token_lib token_dat
 
 wrap_up
