@@ -19,7 +19,7 @@ import (
     "github.com/aws/aws-sdk-go/service/ec2"
 )
 
-var homepath = ""
+var homepath string
 
 func saveSourceCode(src io.Reader, dat string) {
     path := homepath + "efs/user/" + dat + "/src/"
@@ -53,7 +53,7 @@ func composeUserdata(mod, lib, dat string) string {
     return userdata
 }
 
-func waitForInstance(client *ec2.EC2, instanceId string) float64 {
+func waitForInstanceRunning(client *ec2.EC2, instanceId string) {
     requested := time.Now()
 
     err := client.WaitUntilInstanceRunning(&ec2.DescribeInstancesInput {
@@ -64,9 +64,36 @@ func waitForInstance(client *ec2.EC2, instanceId string) float64 {
         log.Print(err)
     }
 
-    started := time.Now()
+    elapsed := time.Now().Sub(requested).Seconds()
+    fmt.Printf("time elapsed until instance running: %.2fs\n", elapsed)
+}
 
-    return started.Sub(requested).Seconds()
+func printInstancePublicIpAddress(client *ec2.EC2, instanceId string) {
+    des, err := client.DescribeInstances(&ec2.DescribeInstancesInput {
+        InstanceIds: aws.StringSlice([]string {instanceId}),
+    })
+
+    if err != nil {
+        log.Print(err)
+    }
+
+    ipAddr := aws.StringValue(des.Reservations[0].Instances[0].PublicIpAddress)
+    println("instance public ip:", ipAddr)
+}
+
+func waitForInstanceTermination(client *ec2.EC2, instanceId string) {
+    run := time.Now()
+
+    err := client.WaitUntilInstanceTerminated(&ec2.DescribeInstancesInput {
+        InstanceIds: aws.StringSlice([]string {instanceId}),
+    })
+
+    if err != nil {
+        log.Print(err)
+    }
+
+    elapsed := time.Now().Sub(run).Seconds()
+    fmt.Printf("time for total instance running time: %.2fs\n", elapsed)
 }
 
 func runInstance(userdata string) {
@@ -97,19 +124,9 @@ func runInstance(userdata string) {
     instanceId := aws.StringValue(res.Instances[0].InstanceId)
     println("request new instance:", instanceId)
 
-    elapsed := waitForInstance(client, instanceId)
-    fmt.Printf("time elapsed until instance running: %.2fs\n", elapsed)
-
-    des, err := client.DescribeInstances(&ec2.DescribeInstancesInput {
-        InstanceIds: aws.StringSlice([]string {instanceId}),
-    })
-
-    if err != nil {
-        log.Print(err)
-    }
-
-    ipAddr := aws.StringValue(des.Reservations[0].Instances[0].PublicIpAddress)
-    println("instance ip:", ipAddr)
+    waitForInstanceRunning(client, instanceId)
+    printInstancePublicIpAddress(client, instanceId)
+    waitForInstanceTermination(client, instanceId)
 }
 
 func main() {

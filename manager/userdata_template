@@ -15,23 +15,20 @@ wrap_up() {
         send_status_to_manager "error"
     fi
 
-    sync
-
     send_status_to_manager "halt"
+    sync
     halt
 }
 
 trap 'wrap_up err' ERR
 
-send_status_to_manager "tensorboard"
+send_status_to_manager "initialized"
 
 tensorboard --logdir=${MLP_NOME}/efs/user/token_dat/tensorboard &
 cp ${MLP_HOME}/efs/user/token_dat/src/main.py ${MLP_HOME}/src/main.py
 
-send_status_to_manager "runcontainer"
+send_status_to_manager "container"
 
 ${MLP_HOME}/runcontainer token_mod token_lib token_dat
-
-send_status_to_manager "done"
 
 wrap_up
